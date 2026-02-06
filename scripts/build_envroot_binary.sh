@@ -56,7 +56,6 @@ build_macos() {
     "${cc}" -O2 -Wall -Wextra -arch "${arch}" -mmacosx-version-min=11.0 \
         -o "${output}" "${src}"
     chmod 755 "${output}"
-    tar -czf "${output_dir}/envroot-1.0.0-macos-${arch}.tar.gz" -C "${output_dir}" "envroot"
     echo "Built ${output}"
 }
 
@@ -104,7 +103,6 @@ build_linux() {
     mkdir -p "${output_dir}"
     "${cc}" -O2 -Wall -Wextra -o "${output}" "${src}"
     chmod 755 "${output}"
-    tar -czf "${output_dir}/envroot-1.0.0-linux-${host_arch}.tar.gz" -C "${output_dir}" "envroot"
     echo "Built ${output}"
 }
 
