@@ -33,7 +33,7 @@ x86_64 | amd64)
     ;;
 esac
 
-src="${project_root_dir_abs}/envroot.c"
+src="${project_root_dir_abs}/src/envroot.c"
 
 build_macos() {
     local arch="$1"
