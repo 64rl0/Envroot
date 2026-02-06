@@ -1,16 +1,12 @@
 #!/bin/sh
 
-if [ "${1}" = "PYTHONBIN" ]; then
-    if [ -z "${PYTHONBIN}" ]; then
-        echo "envroot: PYTHONBIN is not set" >&2
-        exit 1
-    fi
-    if [ ! -x "${PYTHONBIN}" ]; then
-        echo "envroot: PYTHONBIN is not executable: ${PYTHONBIN}" >&2
-        exit 1
-    fi
-    exec "${PYTHONBIN}" "$@"
-else
-    echo "envroot: Unknown parameter: ${1}" >&2
+if [ -z "${1}" ]; then
+    echo "envroot: EXECUTABLE is not set" >&2
     exit 1
 fi
+if [ ! -x "${1}" ]; then
+    echo "envroot: EXECUTABLE is not executable: ${1}" >&2
+    exit 1
+fi
+exec "${1}" "$@"
+
