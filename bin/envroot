@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "${1}" == "PYTHONBIN" ]; then
+if [ "${1}" = "PYTHONBIN" ]; then
     if [ -z "${PYTHONBIN}" ]; then
         echo "envroot: PYTHONBIN is not set" >&2
         exit 1
