@@ -218,7 +218,76 @@ static char *expand_vars(const char *input) {
     }
     return sb.buf;
 }
+static char *find_envroot_dir(const char *script_path) {
+    if (!script_path || !*script_path) {
+        return NULL;
+    }
+    char *script_abs = realpath(script_path, NULL);
+    if (!script_abs) {
+        return NULL;
+    }
+    char *dir = strdup(script_abs);
+    free(script_abs);
+    if (!dir) {
+        die_msg("out of memory");
+    }
+    char *slash = strrchr(dir, '/');
+    if (!slash) {
+        free(dir);
+        return NULL;
+    }
+    if (slash == dir) {
+        dir[1] = '\0';
+    } else {
+        *slash = '\0';
+    }
+    for (;;) {
+        size_t cand_len = strlen(dir) + strlen("/.envroot");
+        char *cand = (char *)malloc(cand_len + 1);
+        if (!cand) {
+            free(dir);
+            die_msg("out of memory");
+        }
+        if (strcmp(dir, "/") == 0) {
+            strcpy(cand, "/.envroot");
+        } else {
+            strcpy(cand, dir);
+            strcat(cand, "/.envroot");
+        }
+        if (access(cand, F_OK) == 0) {
+            free(cand);
+            return dir;
+        }
+        free(cand);
+        if (strcmp(dir, "/") == 0) {
+            break;
+        }
+        slash = strrchr(dir, '/');
+        if (!slash) {
+            break;
+        }
+        if (slash == dir) {
+            dir[1] = '\0';
+        } else {
+            *slash = '\0';
+        }
+    }
+    free(dir);
+    return NULL;
+}
 int main(int argc, char **argv) {
+    if (argc < 3 || !argv[2] || !*argv[2]) {
+        die_msg("missing SCRIPT_PATH (argv[2])");
+    }
+    char *envroot_dir = find_envroot_dir(argv[2]);
+    if (!envroot_dir) {
+        die_detail("unable to resolve ENVROOT from script path", argv[2]);
+    }
+    if (setenv("ENVROOT", envroot_dir, 1) != 0) {
+        free(envroot_dir);
+        die_detail("failed to set ENVROOT", strerror(errno));
+    }
+    free(envroot_dir);
     const char *template_arg = NULL;
     int shift = 0;
     if (argc >= 3) {
@@ -251,3 +320,4 @@ int main(int argc, char **argv) {
     fprintf(stderr, "envroot: exec failed: %s\n", strerror(errno));
     return 1;
 }
+
