@@ -279,15 +279,25 @@ int main(int argc, char **argv) {
     if (argc < 3 || !argv[2] || !*argv[2]) {
         die_msg("missing SCRIPT_PATH (argv[2])");
     }
-    char *envroot_dir = find_envroot_dir(argv[2]);
-    if (!envroot_dir) {
-        die_detail("unable to resolve ENVROOT from script path", argv[2]);
+    const char *override_envroot = getenv("OVERRIDE_ENVROOT");
+    if (override_envroot && !*override_envroot) {
+        die_msg("OVERRIDE_ENVROOT is set but empty");
     }
-    if (setenv("ENVROOT", envroot_dir, 1) != 0) {
+    if (override_envroot) {
+        if (setenv("ENVROOT", override_envroot, 1) != 0) {
+            die_detail("failed to set ENVROOT", strerror(errno));
+        }
+    } else {
+        char *envroot_dir = find_envroot_dir(argv[2]);
+        if (!envroot_dir) {
+            die_detail("unable to resolve ENVROOT from script path", argv[2]);
+        }
+        if (setenv("ENVROOT", envroot_dir, 1) != 0) {
+            free(envroot_dir);
+            die_detail("failed to set ENVROOT", strerror(errno));
+        }
         free(envroot_dir);
-        die_detail("failed to set ENVROOT", strerror(errno));
     }
-    free(envroot_dir);
     const char *template_arg = NULL;
     int shift = 0;
     if (argc >= 3) {
